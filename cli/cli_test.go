@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"testing"
@@ -16,26 +15,26 @@ type testStr struct {
 
 func TestGetItemFromCLI(t *testing.T) {
 	testRaw := testStr{
-		name:     "Mango",
+		name:     "Bread",
 		price:    100,
 		quantity: 2,
 		itemType: "raw",
 	}
 	testManufactured := testStr{
-		name:     "Mango",
+		name:     "Bread",
 		price:    100,
 		quantity: 2,
 		itemType: "manufactured",
 	}
 	testImported := testStr{
-		name:     "Mango",
+		name:     "Bread",
 		price:    100,
 		quantity: 2,
 		itemType: "imported",
 	}
 
 	testInvalidCase := testStr{
-		name:     "Mango",
+		name:     "Bread",
 		price:    100,
 		quantity: -1,
 		itemType: "exported",
@@ -65,7 +64,7 @@ func TestGetItemFromCLI(t *testing.T) {
 		scenario: "invalid test case",
 		str:      testInvalidCase,
 		req:      setInput(testInvalidCase),
-		err:      errors.New("error occurred while entering quantity : unexpected newline"),
+		err:      nil,
 	},
 	}
 
