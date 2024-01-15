@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"fmt"
 	"os"
 	"testing"
 )
@@ -48,22 +47,22 @@ func TestGetItemFromCLI(t *testing.T) {
 	}{{
 		scenario: "all item details provided for raw",
 		str:      testRaw,
-		req:      setInput(testRaw),
+		req:      setInput("Bread raw 100 2 \n"),
 		err:      nil,
 	}, {
 		scenario: "all item details provided for manufactured",
 		str:      testManufactured,
-		req:      setInput(testManufactured),
+		req:      setInput("Bread manufactured 100 2 \n"),
 		err:      nil,
 	}, {
 		scenario: "all item details provided for imported",
 		str:      testImported,
-		req:      setInput(testImported),
+		req:      setInput("Bread imported 100 2 \n"),
 		err:      nil,
 	}, {
 		scenario: "invalid test case",
 		str:      testInvalidCase,
-		req:      setInput(testInvalidCase),
+		req:      setInput("Bread exported 100 -1 \n"),
 		err:      nil,
 	},
 	}
@@ -87,9 +86,8 @@ func TestGetItemFromCLI(t *testing.T) {
 
 }
 
-func setInput(test testStr) *os.File {
-	content := fmt.Sprintf("%s %s %f %d\n", test.name, test.itemType, test.price, test.quantity)
-	contentB := []byte(content)
+func setInput(test string) *os.File {
+	contentB := []byte(test)
 
 	tempFile, err := os.CreateTemp("", "temp_file")
 	if err != nil {
