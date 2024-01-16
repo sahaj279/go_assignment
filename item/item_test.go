@@ -7,7 +7,7 @@ import (
 
 func TestCreateItem(t *testing.T) {
 	correctItem := Item{Name: "bread", Type: enum.Raw, Price: 40, Quantity: 100}
-	result := CreateItem("bread", "raw", 40, 100)
+	result, _ := CreateItem("bread", "raw", 40, 100)
 	if result != correctItem {
 		t.Errorf("item Creation failed")
 	}

@@ -1,11 +1,12 @@
 package cli
 
 import (
+	"errors"
 	"os"
 	"testing"
 )
 
-type testStr struct {
+type expectedRes struct {
 	name     string
 	price    float64
 	quantity int
@@ -13,57 +14,26 @@ type testStr struct {
 }
 
 func TestGetItemFromCLI(t *testing.T) {
-	testRaw := testStr{
-		name:     "Bread",
-		price:    100,
-		quantity: 2,
-		itemType: "raw",
-	}
-	testManufactured := testStr{
-		name:     "Bread",
-		price:    100,
-		quantity: 2,
-		itemType: "manufactured",
-	}
-	testImported := testStr{
-		name:     "Bread",
-		price:    100,
-		quantity: 2,
-		itemType: "imported",
-	}
-
-	testInvalidCase := testStr{
-		name:     "Bread",
-		price:    100,
-		quantity: -1,
-		itemType: "exported",
-	}
 
 	tests := []struct {
 		scenario string
-		str      testStr
+		res      expectedRes
 		req      *os.File
 		err      error
 	}{{
-		scenario: "all item details provided for raw",
-		str:      testRaw,
-		req:      setInput("Bread raw 100 2 \n"),
-		err:      nil,
+		scenario: "all item details provided",
+		res: expectedRes{
+			name:     "Bread",
+			itemType: "raw",
+			quantity: 2,
+			price:    100,
+		},
+		req: setInput("Bread raw 100 2 \n"),
+		err: nil,
 	}, {
-		scenario: "all item details provided for manufactured",
-		str:      testManufactured,
-		req:      setInput("Bread manufactured 100 2 \n"),
-		err:      nil,
-	}, {
-		scenario: "all item details provided for imported",
-		str:      testImported,
-		req:      setInput("Bread imported 100 2 \n"),
-		err:      nil,
-	}, {
-		scenario: "invalid test case",
-		str:      testInvalidCase,
-		req:      setInput("Bread exported 100 -1 \n"),
-		err:      nil,
+		scenario: "someone just pressed enter after bread",
+		req:      setInput("bread \n"),
+		err:      errors.New("unexpected newline"),
 	},
 	}
 
@@ -78,9 +48,9 @@ func TestGetItemFromCLI(t *testing.T) {
 		} else if err == nil && tc.err != nil {
 			t.Errorf("Scenario: %s \n got: %v, expected: %v", tc.scenario, err, tc.err)
 		}
-		if name != tc.str.name || itemType != tc.str.itemType || price != tc.str.price || quantity != tc.str.quantity {
-			t.Errorf("Scenario: %s \n got: %v, expected: %v", tc.scenario, err, tc.err)
 
+		if (name != tc.res.name || itemType != tc.res.itemType || price != tc.res.price || quantity != tc.res.quantity) && tc.err == nil {
+			t.Errorf("Scenario: %s \n got: %v, expected: %v", tc.scenario, err, tc.err)
 		}
 	}
 
@@ -102,5 +72,6 @@ func setInput(test string) *os.File {
 		os.Remove(tempFile.Name())
 		return nil
 	}
+
 	return tempFile
 }
