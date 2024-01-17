@@ -7,5 +7,5 @@ require (
 	github.com/go-ozzo/ozzo-validation v3.6.0+incompatible // indirect
 	github.com/pascaldekloe/name v0.0.0-20180628100202-0fd16699aae1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	golang.org/x/tools v0.0.0-20190524210228-3d17549cdc6b // indirect
+	golang.org/x/tools v0.17.0 // indirect
 )
