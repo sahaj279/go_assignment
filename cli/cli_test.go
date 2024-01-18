@@ -13,7 +13,7 @@ type expectedRes struct {
 	itemType string
 }
 
-func TestGetItemFromCLI(t *testing.T) {
+func TestEnterItem(t *testing.T) {
 
 	tests := []struct {
 		scenario string
@@ -31,6 +31,26 @@ func TestGetItemFromCLI(t *testing.T) {
 		req: setInput("Bread raw 100 2 \n"),
 		err: nil,
 	}, {
+		scenario: "all item details provided though invalid",
+		res: expectedRes{
+			name:     "Bread",
+			itemType: "ram",
+			quantity: -2,
+			price:    -100,
+		},
+		req: setInput("Bread ram -100 -2 \n"),
+		err: nil,
+	}, {
+		scenario: "alphabets entered as price",
+		res: expectedRes{
+			name:     "Bread",
+			itemType: "ram",
+			quantity: -2,
+			price:    -100,
+		},
+		req: setInput("Bread ram one -2 \n"),
+		err: errors.New("enter item : price error: strconv.ParseFloat: parsing \"\": invalid syntax"),
+	}, {
 		scenario: "someone just pressed enter after bread",
 		req:      setInput("bread \n"),
 		err:      errors.New("unexpected newline"),
@@ -42,7 +62,7 @@ func TestGetItemFromCLI(t *testing.T) {
 
 	for _, tc := range tests {
 		os.Stdin = tc.req
-		name, itemType, price, quantity, err := getItemFromCLI()
+		name, itemType, price, quantity, err := enterItem()
 		if err != nil && tc.err == nil {
 			t.Errorf("Scenario: %s \n got: %v, expected: %v", tc.scenario, err, tc.err)
 		} else if err == nil && tc.err != nil {
@@ -52,6 +72,45 @@ func TestGetItemFromCLI(t *testing.T) {
 		if (name != tc.res.name || itemType != tc.res.itemType || price != tc.res.price || quantity != tc.res.quantity) && tc.err == nil {
 			t.Errorf("Scenario: %s \n got: %v, expected: %v", tc.scenario, err, tc.err)
 		}
+	}
+
+}
+
+func TestInit(t *testing.T) {
+	tests := []struct {
+		scenario string
+		cliInput string
+		err      error
+	}{
+		{
+			scenario: "valid input with 1 item details",
+			cliInput: "bread raw 40 4\nn\n",
+			err:      nil,
+		},
+		{
+			scenario: "valid input with 2 item details",
+			cliInput: "bread raw 40 4\nn\nbread ram -3 6\ny\n",
+			err:      nil,
+		},
+		{
+			scenario: "valid input with 2 item details",
+			cliInput: "bread ram 40 4\nn\nbread ram -3 6\ny\n",
+			err:      errors.New("init: CreateItem: ram does not belong to ItemType values"),
+		},
+	}
+
+	oldStdin := os.Stdin
+	defer func() { os.Stdin = oldStdin }()
+
+	for _, tc := range tests {
+		os.Stdin = setInput(tc.cliInput)
+		err := Init()
+		if err != nil && tc.err == nil {
+			t.Errorf("Scenario: %s \n got: %v, expected: %v", tc.scenario, err, tc.err)
+		} else if err == nil && tc.err != nil {
+			t.Errorf("Scenario: %s \n got: %v, expected: %v", tc.scenario, err, tc.err)
+		}
+
 	}
 
 }

@@ -1,9 +1,10 @@
 package item
 
 import (
-	"assignment1/item/enum"
-	"errors"
 	"testing"
+
+	"github.com/pkg/errors"
+	"github.com/sahaj279/go-assignment/item/enum"
 )
 
 type InputItem struct {
@@ -23,20 +24,20 @@ func TestCreateItem(t *testing.T) {
 		{
 			scenario:     "Valid test case",
 			expectedItem: Item{Name: "bread", Type: enum.Raw, Price: 30, Quantity: 3},
-			input:        InputItem{"bread", "raw", 30, 3},
+			input:        InputItem{"bread", "rAw", 30, 3},
 			err:          nil,
 		},
 		{
 			scenario:     "InValid test case invalid item type",
 			expectedItem: Item{Name: "bread", Type: enum.Raw, Price: 30, Quantity: 3},
 			input:        InputItem{"bread", "ram", 30, 3},
-			err:          errors.New("ram does not belong to ItemType values"),
+			err:          errors.New("CreateItem: ram does not belong to ItemType values"),
 		},
 		{
 			scenario:     "InValid test case invalid price and quantity",
-			expectedItem: Item{Name: "bread", Type: enum.Raw, Price: 40, Quantity: 200},
+			expectedItem: Item{Name: "bread", Type: enum.Raw, Price: 30, Quantity: 3},
 			input:        InputItem{"bread", "raw", -30, -3},
-			err:          errors.New("item invalid: Price: negative value; Quantity: negative value."),
+			err:          errors.New(" CreateItem: Price: validate: negative value; Quantity: validate: negative value."),
 		},
 	}
 
@@ -53,15 +54,15 @@ func TestCreateItem(t *testing.T) {
 	}
 
 }
-func TestCalculateSalesTax(t *testing.T) {
+func TestCalculateTex(t *testing.T) {
 	var tests = []struct {
 		scenario string
-		req      Item
+		item     Item
 		tax      float64
 	}{
 		{
 			scenario: "tax calculation for raw",
-			req: Item{
+			item: Item{
 				Name:  "Bread",
 				Type:  enum.Raw,
 				Price: 100,
@@ -70,7 +71,7 @@ func TestCalculateSalesTax(t *testing.T) {
 		},
 		{
 			scenario: "tax calculation for manufactured",
-			req: Item{
+			item: Item{
 				Name:  "Bread",
 				Type:  enum.Manufactured,
 				Price: 100,
@@ -79,7 +80,7 @@ func TestCalculateSalesTax(t *testing.T) {
 		},
 		{
 			scenario: "tax calculation for imported final cost up to 100",
-			req: Item{
+			item: Item{
 				Name:  "Bread",
 				Type:  enum.Imported,
 				Price: 10,
@@ -88,7 +89,7 @@ func TestCalculateSalesTax(t *testing.T) {
 		},
 		{
 			scenario: "final price calculation for imported final cost >100 and <= 200",
-			req: Item{
+			item: Item{
 				Name:  "Bread",
 				Type:  enum.Imported,
 				Price: 100,
@@ -97,7 +98,7 @@ func TestCalculateSalesTax(t *testing.T) {
 		},
 		{
 			scenario: "final price calculation for imported final cost > 200",
-			req: Item{
+			item: Item{
 				Name:  "Bread",
 				Type:  enum.Imported,
 				Price: 200,
@@ -107,9 +108,9 @@ func TestCalculateSalesTax(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc.req.CalculateSalesTax()
-		if tc.tax != tc.req.SalesTax {
-			t.Errorf("Scenario: %s \n got: %v, expected: %v", tc.scenario, tc.req.SalesTax, tc.tax)
+		tax := tc.item.CalculateTax()
+		if tc.tax != tax {
+			t.Errorf("Scenario: %s \n got: %v, expected: %v", tc.scenario, tax, tc.tax)
 		}
 	}
 }

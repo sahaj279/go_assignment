@@ -1,9 +1,12 @@
 package main
 
 import (
-	"assignment1/cli"
+	"github.com/pkg/errors"
+	"github.com/sahaj279/go-assignment/cli"
 )
 
 func main() {
-	cli.Init()
+	if err := cli.Init(); err != nil {
+		cli.LogError(errors.Wrap(err, "main"))
+	}
 }
