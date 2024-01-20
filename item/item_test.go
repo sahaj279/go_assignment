@@ -15,6 +15,7 @@ type InputItem struct {
 }
 
 func TestCreateItem(t *testing.T) {
+	var itemSvc ItemSvc
 	tests := []struct {
 		scenario     string
 		expectedItem Item
@@ -42,20 +43,19 @@ func TestCreateItem(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		result, err := CreateItem(tc.input.name, tc.input.itemType, tc.input.price, tc.input.quantity)
+		result, err := itemSvc.CreateItem(tc.input.name, tc.input.itemType, tc.input.price, tc.input.quantity)
 		if err != nil && tc.err == nil {
 			t.Errorf("Scenario: %s \n got: %v, expected: %v", tc.scenario, err, tc.err)
-
 		}
 		if result != tc.expectedItem && tc.err == nil {
 			t.Errorf("Scenario: %s \n got: %v, expected: %v", tc.scenario, err, tc.err)
-
 		}
 	}
-
 }
+
 func TestCalculateTex(t *testing.T) {
-	var tests = []struct {
+	var itemSvc ItemSvc
+	tests := []struct {
 		scenario string
 		item     Item
 		tax      float64
@@ -108,7 +108,7 @@ func TestCalculateTex(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tax := tc.item.CalculateTax()
+		tax := itemSvc.CalculateTax(&tc.item)
 		if tc.tax != tax {
 			t.Errorf("Scenario: %s \n got: %v, expected: %v", tc.scenario, tax, tc.tax)
 		}

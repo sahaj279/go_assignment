@@ -34,18 +34,18 @@ func (m *MockItemHandler) EXPECT() *MockItemHandlerMockRecorder {
 	return m.recorder
 }
 
-// CalculateSalesTax mocks base method.
-func (m *MockItemHandler) CalculateSalesTax() float64 {
+// CalculateTax mocks base method.
+func (m *MockItemHandler) CalculateTax(arg0 *item.Item) float64 {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CalculateSalesTax")
+	ret := m.ctrl.Call(m, "CalculateTax", arg0)
 	ret0, _ := ret[0].(float64)
 	return ret0
 }
 
-// CalculateSalesTax indicates an expected call of CalculateSalesTax.
-func (mr *MockItemHandlerMockRecorder) CalculateSalesTax() *gomock.Call {
+// CalculateTax indicates an expected call of CalculateTax.
+func (mr *MockItemHandlerMockRecorder) CalculateTax(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CalculateSalesTax", reflect.TypeOf((*MockItemHandler)(nil).CalculateSalesTax))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CalculateTax", reflect.TypeOf((*MockItemHandler)(nil).CalculateTax), arg0)
 }
 
 // CreateItem mocks base method.

@@ -13,7 +13,17 @@ const (
 	No  = "n"
 )
 
-func Init() error {
+type Cli struct {
+	itemSvc item.ItemHandler
+}
+
+func NewCli(itemSvc item.ItemHandler) Cli {
+	return Cli{
+		itemSvc: itemSvc,
+	}
+}
+
+func (c Cli) Init() error {
 	// While moreItem is true, we keep on entering item details
 	moreItem := true
 	for moreItem {
@@ -22,12 +32,12 @@ func Init() error {
 			return errors.Wrap(err, "init")
 		}
 
-		item, err := item.CreateItem(name, itemType, price, quantity)
+		item, err := c.itemSvc.CreateItem(name, itemType, price, quantity)
 		if err != nil {
 			return errors.Wrap(err, "init")
 		}
 
-		tax := item.CalculateTax()
+		tax := c.itemSvc.CalculateTax(&item)
 		printItem(&item, tax)
 
 		moreItem, err = enterMore()
@@ -46,11 +56,9 @@ func printItem(item *item.Item, tax float64) {
 	fmt.Println("Sales Tax Liability:", tax)
 	fmt.Println("Final Price:", tax+item.Price)
 	fmt.Println("----------------------------")
-
 }
 
 func enterItem() (name string, itemType string, price float64, quantity int, err error) {
-
 	fmt.Println("\nEnter Item Details")
 	fmt.Println("Enter item name, item type, price and quantity with spaces :")
 

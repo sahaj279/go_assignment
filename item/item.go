@@ -10,18 +10,20 @@ import (
 //go:generate mockgen -source=item.go -destination=mock_item/mock_item.go
 type ItemHandler interface {
 	CreateItem(string, string, float64, int) (Item, error)
-	CalculateSalesTax() float64
+	CalculateTax(*Item) float64
 }
 
-type Item struct {
-	Name     string
-	Type     enum.ItemType
-	Price    float64
-	Quantity int
-}
+type (
+	ItemSvc struct{}
+	Item    struct {
+		Name     string
+		Type     enum.ItemType
+		Price    float64
+		Quantity int
+	}
+)
 
-func CreateItem(name string, itemType string, price float64, quantity int) (item Item, err error) {
-
+func (i ItemSvc) CreateItem(name string, itemType string, price float64, quantity int) (item Item, err error) {
 	item = Item{Name: name, Price: price, Quantity: quantity}
 	item.Type, err = enum.ItemTypeString(itemType)
 	// Returns error if item type is invalid
@@ -62,7 +64,7 @@ func positiveValue(value interface{}) error {
 	return nil
 }
 
-func (item *Item) CalculateTax() float64 {
+func (i ItemSvc) CalculateTax(item *Item) float64 {
 	var tax float64
 	rawTax := 0.125 * item.Price
 
