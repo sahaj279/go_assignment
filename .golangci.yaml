@@ -107,52 +107,52 @@ linters-settings:
 
 linters:
   enable:
-    # - asciicheck
-    # - bodyclose
-    # - deadcode
-    # - dogsled
-    # - dupl
-    # - errcheck
-    # - exhaustive
-    # - exportloopref
-    # - gci
-    # - gochecknoinits
-    # - gocognit
-    # - goconst
-    # - gocritic
+    - asciicheck
+    - bodyclose
+    - deadcode
+    - dogsled
+    - dupl
+    - errcheck
+    - exhaustive
+    - exportloopref
+    - gci
+    - gochecknoinits
+    - gocognit
+    - goconst
+    - gocritic
     - gocyclo
-    # - godot
-    # - goerr113
-    # - gofmt
-    # - gofumpt
-    # - goimports
-    # - gomodguard
-    # - gosec
-    # - gosimple
-    # - govet
-    # - ineffassign
-    # - revive
+    - godot
+    - goerr113
+    - gofmt
+    - gofumpt
+    - goimports
+    - gomodguard
+    - gosec
+    - gosimple
+    - govet
+    - ineffassign
+    - revive
     
     # Deprecated linter, but still functional as of golangci-lint v1.39.0.
     # See https://github.com/golangci/golangci-lint/issues/1825 for more information.
     # - maligned
     
-    # - misspell
-    # - nakedret
-    # - nestif
-    # - noctx
-    # - nolintlint
-    # - prealloc
-    # - sqlclosecheck
-    # - staticcheck
-    # - structcheck
-    # - stylecheck
-    # - typecheck
-    # - unconvert
-    # - unparam
-    # - unused
-    # - varcheck
-    # - whitespace
+    - misspell
+    - nakedret
+    - nestif
+    - noctx
+    - nolintlint
+    - prealloc
+    - sqlclosecheck
+    - staticcheck
+    - structcheck
+    - stylecheck
+    - typecheck
+    - unconvert
+    - unparam
+    - unused
+    - varcheck
+    - whitespace
   disable:
     - scopelint
 
