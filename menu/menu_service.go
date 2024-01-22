@@ -1,14 +1,16 @@
 package menu
 
 import (
-	repo "assignment2/repository"
-	"assignment2/user"
 	"bufio"
-	"errors"
 	"fmt"
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/pkg/errors"
+
+	enum "github.com/sahaj279/go_assignment/repository/data_field"
+	"github.com/sahaj279/go_assignment/user"
 )
 
 const (
@@ -21,31 +23,29 @@ const (
 	Descending   = "2"
 )
 
-func addUser(repository repo.Repository) error {
+func (m *Menu) addUser() error {
 	fmt.Printf("Add user details ")
 
-	// getting user details from cli
-	name, age, address, rollNo, courses, err := getDetailsFromCLI()
+	name, age, address, rollNo, courses, err := getDetails()
 	if err != nil {
-		return err
+		return errors.Wrap(err, "addUser")
 	}
 
 	// creating user object after it gets validated
 	user, err := user.NewUser(name, age, address, rollNo, courses)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "addUser")
 	}
 
-	// adding user to repository
-	if err := repository.Add(user); err != nil {
-		return err
+	if err := m.repository.Add(user); err != nil {
+		return errors.Wrap(err, "addUser")
 	}
 
 	fmt.Print("\nuser added successfully!\n")
 	return nil
 }
 
-func getDetailsFromCLI() (name string, age int, address string, rollNo int, courses []string, err error) {
+func getDetails() (name string, age int, address string, rollNo int, courses []string, err error) {
 	scanner := bufio.NewScanner(os.Stdin)
 	fmt.Printf("Full Name: ")
 	if scanner.Scan() {
@@ -53,6 +53,7 @@ func getDetailsFromCLI() (name string, age int, address string, rollNo int, cour
 		name = strings.TrimSpace(name)
 	}
 	if err = scanner.Err(); err != nil {
+		err = errors.Wrap(err, "getDetails")
 		return
 	}
 
@@ -60,10 +61,12 @@ func getDetailsFromCLI() (name string, age int, address string, rollNo int, cour
 	if scanner.Scan() {
 		age, err = strconv.Atoi(string(scanner.Bytes()))
 		if err != nil {
+			err = errors.Wrap(err, "getDetails")
 			return
 		}
 	}
 	if err = scanner.Err(); err != nil {
+		err = errors.Wrap(err, "getDetails")
 		return
 	}
 
@@ -73,6 +76,7 @@ func getDetailsFromCLI() (name string, age int, address string, rollNo int, cour
 		address = strings.TrimSpace(address)
 	}
 	if err = scanner.Err(); err != nil {
+		err = errors.Wrap(err, "getDetails")
 		return
 	}
 
@@ -80,15 +84,18 @@ func getDetailsFromCLI() (name string, age int, address string, rollNo int, cour
 	if scanner.Scan() {
 		rollNo, err = strconv.Atoi(string(scanner.Bytes()))
 		if err != nil {
+			err = errors.Wrap(err, "getDetails")
 			return
 		}
 	}
 	if err = scanner.Err(); err != nil {
+		err = errors.Wrap(err, "getDetails")
 		return
 	}
 
 	courses, err = getCourse()
 	if err != nil {
+		err = errors.Wrap(err, "getDetails")
 		return
 	}
 	return
@@ -97,7 +104,7 @@ func getDetailsFromCLI() (name string, age int, address string, rollNo int, cour
 func getCourse() ([]string, error) {
 	// getting courses which can be 4 and maximum 6 and should be unique
 	scanner := bufio.NewScanner(os.Stdin)
-	fmt.Printf("Enter number of courses you want to enrol (at least %d) ", MinCourses)
+	fmt.Printf("Enter number of courses you want to enroll (at least %d) ", MinCourses)
 
 	var courses []string
 	var numCourses int
@@ -106,17 +113,18 @@ func getCourse() ([]string, error) {
 	if scanner.Scan() {
 		n, err := strconv.Atoi(string(scanner.Bytes()))
 		if err != nil {
-			return []string{}, err
+			return []string{}, errors.Wrap(err, "getCourse")
 		}
 		numCourses = n
 	}
+
 	if err := scanner.Err(); err != nil {
-		return []string{}, err
+		return []string{}, errors.Wrap(err, "getCourse")
 	}
 
 	if numCourses < MinCourses || numCourses > TotalCourses {
 		err := fmt.Errorf("select at least %d and not more than %d", MinCourses, TotalCourses)
-		return []string{}, err
+		return []string{}, errors.Wrap(err, "getCourse")
 	}
 
 	// entering the courses
@@ -129,7 +137,7 @@ func getCourse() ([]string, error) {
 			course = strings.TrimSpace(course)
 		}
 		if err := scanner.Err(); err != nil {
-			return []string{}, err
+			return []string{}, errors.Wrap(err, "getCourse")
 		}
 
 		courses = append(courses, course)
@@ -138,34 +146,44 @@ func getCourse() ([]string, error) {
 	return courses, nil
 }
 
-func displayUsers(repository *repo.Repository) error {
+func (m *Menu) displayUsers() error {
 	// display users present in memory
 	fmt.Println("Display Users")
 
-	// get users in a sorted order
-	users, err := getAll(repository)
+	field, ascOrder, err := getSortBy()
 	if err != nil {
-		return err
+		return errors.Wrap(err, "displayUsers")
 	}
-	// print details
+
+	// get users in a sorted order
+	users := m.getAll(field, ascOrder)
 	display(users)
 	return nil
 }
 
-func getAll(repository *repo.Repository) (users []user.User, err error) {
-	// enter field name to sort the users
+func getSortBy() (field enum.DataField, ascOrder bool, err error) {
+	// getting field to sort by
 	scanner := bufio.NewScanner(os.Stdin)
 	fmt.Print("Field Name to sort details on: ")
-	var field string
+	var dataField string
 
 	if scanner.Scan() {
-		field = scanner.Text()
-		field = strings.TrimSpace(field)
+		dataField = scanner.Text()
+		dataField = strings.TrimSpace(dataField)
 	}
+
 	if err = scanner.Err(); err != nil {
+		err = errors.Wrap(err, "getSortBy")
 		return
 	}
 
+	field, err = enum.DataFieldString(dataField)
+	if err != nil {
+		err = errors.Wrap(err, "getSortBy")
+		return
+	}
+
+	// getting order for sorting
 	fmt.Print("\nIn which order should records be sorted\n[1] Ascending \n[2]Descending\n")
 	var order string
 
@@ -173,25 +191,28 @@ func getAll(repository *repo.Repository) (users []user.User, err error) {
 		order = scanner.Text()
 		order = strings.TrimSpace(order)
 	}
+
 	if err = scanner.Err(); err != nil {
+		err = errors.Wrap(err, "getSortBy")
 		return
 	}
+
 	if order != Ascending && order != Descending {
 		err = errors.New("enter either 1 or 2")
+		err = errors.Wrap(err, "getSortBy")
 		return
 	}
 
-	var ASCOrder bool = true
 	if order == Ascending {
-		ASCOrder = false
+		ascOrder = true
 	}
 
-	users, err = repository.List(field, ASCOrder)
-	if err != nil {
-		return []user.User{}, err
-	}
+	return
+}
 
-	return users, nil
+func (m *Menu) getAll(field enum.DataField, ascOrder bool) (users []user.User) {
+	users = m.repository.List(field, ascOrder)
+	return users
 }
 
 func display(users []user.User) {
@@ -202,52 +223,43 @@ func display(users []user.User) {
 	}
 }
 
-func deleteByRollNo(repository repo.Repository) error {
+func (m *Menu) deleteUser() error {
 	scanner := bufio.NewScanner(os.Stdin)
-
 	fmt.Print("Enter roll no to delete: ")
-
 	var rollNo int
 
 	if scanner.Scan() {
 		r, err := strconv.Atoi(string(scanner.Bytes()))
 		if err != nil {
-
-			return err
+			return errors.Wrap(err, "deleteUser")
 		}
 		rollNo = r
 	}
 	if err := scanner.Err(); err != nil {
-
-		return err
+		return errors.Wrap(err, "deleteUser")
 	}
 
-	if err := repository.Delete(rollNo); err != nil {
-		return err
+	if err := m.repository.Delete(rollNo); err != nil {
+		return errors.Wrap(err, "deleteUser")
 	}
 
 	fmt.Print("\nuser deleted successfully\n")
-
 	return nil
 }
 
-func save(repository repo.Repository) error {
-	//saving data in ascending order of name
-	users, err := repository.List("name", true)
-	if err != nil {
-		return err
-	}
+func (m *Menu) saveUser() error {
+	// saving data in ascending order of name
+	users := m.repository.List(enum.Name, true)
 
-	if err = repository.Save(users); err != nil {
-		return err
+	if err := m.repository.Save(users); err != nil {
+		return errors.Wrap(err, "saveUser")
 	}
 
 	fmt.Println("saved successfully")
-
 	return nil
 }
 
-func confirmSave(repository repo.Repository) error {
+func (m *Menu) confirmSave() error {
 	scanner := bufio.NewScanner(os.Stdin)
 
 	fmt.Printf("Do you want to save the data(%s/%s)?", Accept, Reject)
@@ -258,18 +270,18 @@ func confirmSave(repository repo.Repository) error {
 		userChoice = scanner.Text()
 		userChoice = strings.TrimSpace(userChoice)
 	}
-	if err := scanner.Err(); err != nil {
 
-		return err
+	if err := scanner.Err(); err != nil {
+		return errors.Wrap(err, "confirmSave")
 	}
 
 	if err := validateConfirmation(userChoice); err != nil {
-		return err
+		return errors.Wrap(err, "confirmSave")
 	}
 
 	if userChoice == Accept {
-		if err := save(repository); err != nil {
-			return err
+		if err := m.saveUser(); err != nil {
+			return errors.Wrap(err, "confirmSave")
 		}
 	}
 	return nil
@@ -279,7 +291,7 @@ func validateConfirmation(userChoice string) error {
 	if userChoice != Accept && userChoice != Reject {
 		err := fmt.Errorf("%s: %s", "invalid choice", userChoice)
 
-		return err
+		return errors.Wrap(err, "confirmSave")
 	}
 
 	return nil

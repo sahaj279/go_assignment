@@ -1,10 +1,11 @@
 package user
 
 import (
-	enum "assignment2/user/course"
-	"encoding/json"
-	"errors"
 	"fmt"
+
+	"github.com/pkg/errors"
+
+	enum "github.com/sahaj279/go_assignment/user/course"
 
 	validation "github.com/go-ozzo/ozzo-validation"
 )
@@ -18,7 +19,6 @@ type User struct {
 }
 
 func NewUser(name string, age int, address string, rollNo int, courses []string) (user User, err error) {
-	// creating user object
 	user.Name = name
 	user.Age = age
 	user.Address = address
@@ -27,31 +27,30 @@ func NewUser(name string, age int, address string, rollNo int, courses []string)
 	var c []enum.Course
 	c, err = getCourses(courses)
 	if err != nil {
+		err = errors.Wrap(err, "newUser")
 		return
 	}
 
 	user.Courses = c
 
-	// validating it
 	if err = user.validate(); err != nil {
+		err = errors.Wrap(err, "newUser")
 		return
 	}
 
-	// only returning if validation successful
 	return
 }
 
-func getCourses(courses []string) ([]enum.Course, error) {
-	var courseEnum []enum.Course
+func getCourses(courses []string) (courseEnum []enum.Course, err error) {
 	for _, c := range courses {
 		course, err := enum.CourseString(c)
 		if err != nil {
-			return []enum.Course{}, err
+			return []enum.Course{}, errors.Wrap(err, "getCourse")
 		}
 		courseEnum = append(courseEnum, course)
 	}
 
-	return courseEnum, nil
+	return
 }
 
 func (user User) validate() error {
@@ -71,7 +70,8 @@ func CheckUnique(value interface{}) error {
 	for _, c := range courses {
 		_, exists := set[c]
 		if exists {
-			return errors.New("should be unique")
+			err := errors.New("should be unique")
+			return errors.Wrap(err, "validate")
 		}
 		set[c] = struct{}{}
 	}
@@ -81,39 +81,18 @@ func CheckUnique(value interface{}) error {
 func CheckPositive(value interface{}) error {
 	val := value.(int)
 	if val <= 0 {
-		return errors.New("must be positive")
+		return errors.Wrap(errors.New("must be positive"), "validate")
 	}
 	return nil
 }
 
 func (user User) String() string {
-	return fmt.Sprintf("	%s	|	%d	|	%s	|	%d	|	%s|\n", user.Name, user.Age, user.Address, user.RollNo, courseString(user.Courses))
+	return fmt.Sprintf("%s	|	%d	|	%s	|	%d	|	%s	|\n", user.Name, user.Age, user.Address, user.RollNo, courseString(user.Courses))
 }
 
-func courseString(course []enum.Course) []string {
-	var courses []string
+func courseString(course []enum.Course) (courses []string) {
 	for _, c := range course {
 		courses = append(courses, c.String())
 	}
-
 	return courses
-}
-
-func EncodeUsers(users []User) ([]byte, error) {
-	userB, err := json.Marshal(users)
-	if err != nil {
-		return []byte{}, err
-	}
-
-	return userB, nil
-}
-
-func DecodeUsers(userB []byte) ([]User, error) {
-	var users []User
-	if err := json.Unmarshal(userB, &users); err != nil {
-		return []User{}, err
-	}
-
-	return users, nil
-
 }

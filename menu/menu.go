@@ -1,61 +1,77 @@
 package menu
 
 import (
-	repo "assignment2/repository"
 	"bufio"
-	"errors"
 	"fmt"
 	"log"
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/pkg/errors"
+
+	repo "github.com/sahaj279/go_assignment/repository"
 )
 
-func Init() error {
-	// users repository for storing in memory
-	repository := repo.NewRepo()
+func NewMenu(repository repo.Svc) Menu {
+	return Menu{
+		repository: repository,
+	}
+}
+
+type Menu struct {
+	repository repo.Svc
+}
+
+func (m *Menu) Init() error {
 
 	// loading users from file
-	if err := repository.Load(DataFilePath); err != nil {
-		return err
+	if err := m.repository.Load(DataFilePath); err != nil {
+		return errors.Wrap(err, "init")
 	}
 
 	// closing the file at end
-	defer repository.Close()
+	defer m.repository.Close()
 
-	// show option menu
+App:
 	for {
 		showMenu()
 		var choice int
 		var err error
 
-		// Getting user choice until we get a valid choice
-
-		choice, err = getUserChoice()
+		choice, err = getChoice()
 		if err != nil {
-			return err
-		} else if choice < 1 || choice > 5 {
-			return (errors.New("choice should be in between 1 and 5"))
+			return errors.Wrap(err, "init")
 		}
 
-		// Performing operation based on selected choice
 		switch choice {
 		case 1:
-			if err = addUser(*repository); err != nil {
-				return err
+			if err = m.addUser(); err != nil {
+				return errors.Wrap(err, "init")
 			}
 		case 2:
-			if err = displayUsers(repository); err != nil {
-				return err
+			if err = m.displayUsers(); err != nil {
+				return errors.Wrap(err, "init")
 			}
 		case 3:
+			if err = m.deleteUser(); err != nil {
+				return errors.Wrap(err, "init")
+			}
 		case 4:
+			if err = m.saveUser(); err != nil {
+				return errors.Wrap(err, "init")
+			}
 		case 5:
+			if err = m.confirmSave(); err != nil {
+				return errors.Wrap(err, "init")
+			}
+			break App
 		}
 	}
+	return nil
 }
 
-func getUserChoice() (choice int, err error) {
+func getChoice() (choice int, err error) {
 	scanner := bufio.NewScanner(os.Stdin)
 	var userChoice string
 
@@ -64,11 +80,20 @@ func getUserChoice() (choice int, err error) {
 		userChoice = scanner.Text()
 		userChoice = strings.TrimSpace(userChoice)
 	}
+
 	if err = scanner.Err(); err != nil {
-		return
+		return 0, errors.Wrap(err, "getChoice")
 	}
 
 	choice, err = strconv.Atoi(userChoice)
+	if err != nil {
+		return 0, errors.Wrap(err, "getChoice")
+	}
+
+	if choice < 1 || choice > 5 {
+		err = (errors.New("choice should be in between 1 and 5"))
+		return 0, errors.Wrap(err, "getChoice")
+	}
 	return
 }
 
