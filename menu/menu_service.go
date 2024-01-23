@@ -102,14 +102,12 @@ func getDetails() (name string, age int, address string, rollNo int, courses []s
 }
 
 func getCourse() ([]string, error) {
-	// getting courses which can be 4 and maximum 6 and should be unique
 	scanner := bufio.NewScanner(os.Stdin)
 	fmt.Printf("Enter number of courses you want to enroll (at least %d) ", MinCourses)
 
 	var courses []string
 	var numCourses int
 
-	// asking for number of courses one wants to apply for
 	if scanner.Scan() {
 		n, err := strconv.Atoi(string(scanner.Bytes()))
 		if err != nil {
@@ -127,7 +125,6 @@ func getCourse() ([]string, error) {
 		return []string{}, errors.Wrap(err, "getCourse")
 	}
 
-	// entering the courses
 	for i := 1; i <= numCourses; i++ {
 		fmt.Printf("Enter course - %d: (A,B,C,D,E,F)", i)
 		var course string
@@ -147,7 +144,6 @@ func getCourse() ([]string, error) {
 }
 
 func (m *Menu) displayUsers() error {
-	// display users present in memory
 	fmt.Println("Display Users")
 
 	field, ascOrder, err := getSortBy()
@@ -155,14 +151,12 @@ func (m *Menu) displayUsers() error {
 		return errors.Wrap(err, "displayUsers")
 	}
 
-	// get users in a sorted order
 	users := m.getAll(field, ascOrder)
 	display(users)
 	return nil
 }
 
 func getSortBy() (field enum.DataField, ascOrder bool, err error) {
-	// getting field to sort by
 	scanner := bufio.NewScanner(os.Stdin)
 	fmt.Print("Field Name to sort details on: ")
 	var dataField string
@@ -183,7 +177,6 @@ func getSortBy() (field enum.DataField, ascOrder bool, err error) {
 		return
 	}
 
-	// getting order for sorting
 	fmt.Print("\nIn which order should records be sorted\n[1] Ascending \n[2]Descending\n")
 	var order string
 
@@ -261,7 +254,6 @@ func (m *Menu) saveUser() error {
 
 func (m *Menu) confirmSave() error {
 	scanner := bufio.NewScanner(os.Stdin)
-
 	fmt.Printf("Do you want to save the data(%s/%s)?", Accept, Reject)
 
 	var userChoice string

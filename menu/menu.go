@@ -24,16 +24,13 @@ type Menu struct {
 }
 
 func (m *Menu) Init() error {
-
-	// loading users from file
 	if err := m.repository.Load(DataFilePath); err != nil {
 		return errors.Wrap(err, "init")
 	}
 
-	// closing the file at end
 	defer m.repository.Close()
+	defer fmt.Println("Menu application finished!")
 
-App:
 	for {
 		showMenu()
 		var choice int
@@ -65,10 +62,9 @@ App:
 			if err = m.confirmSave(); err != nil {
 				return errors.Wrap(err, "init")
 			}
-			break App
+			return nil
 		}
 	}
-	return nil
 }
 
 func getChoice() (choice int, err error) {
