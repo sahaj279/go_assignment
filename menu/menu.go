@@ -13,8 +13,16 @@ import (
 	repo "github.com/sahaj279/go_assignment/repository"
 )
 
-func NewMenu(repository repo.Svc) Menu {
-	return Menu{
+const (
+	AddUser int = iota + 1
+	DisplayUser
+	DeleteUser
+	SaveUser
+	Exit
+)
+
+func NewMenu(repository repo.Svc) *Menu {
+	return &Menu{
 		repository: repository,
 	}
 }
@@ -42,23 +50,23 @@ func (m *Menu) Init() error {
 		}
 
 		switch choice {
-		case 1:
+		case AddUser:
 			if err = m.addUser(); err != nil {
 				return errors.Wrap(err, "init")
 			}
-		case 2:
+		case DisplayUser:
 			if err = m.displayUsers(); err != nil {
 				return errors.Wrap(err, "init")
 			}
-		case 3:
+		case DeleteUser:
 			if err = m.deleteUser(); err != nil {
 				return errors.Wrap(err, "init")
 			}
-		case 4:
+		case SaveUser:
 			if err = m.saveUser(); err != nil {
 				return errors.Wrap(err, "init")
 			}
-		case 5:
+		case Exit:
 			if err = m.confirmSave(); err != nil {
 				return errors.Wrap(err, "init")
 			}

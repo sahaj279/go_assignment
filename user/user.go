@@ -11,11 +11,11 @@ import (
 )
 
 type User struct {
-	Name    string
-	Age     int
-	Address string
-	RollNo  int
-	Courses []enum.Course // set of courses
+	Name    string        `json:"name,omitempty"`
+	Age     int           `json:"age,omitempty"`
+	Address string        `json:"address,omitempty"`
+	RollNo  int           `json:"roll_no,omitempty"`
+	Courses []enum.Course `json:"courses,omitempty"` // set of courses
 }
 
 func NewUser(name string, age int, address string, rollNo int, courses []string) (user User, err error) {

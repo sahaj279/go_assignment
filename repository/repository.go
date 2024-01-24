@@ -27,6 +27,10 @@ type Repository struct {
 	file  *os.File
 }
 
+func NewRepository() *Repository {
+	return &Repository{}
+}
+
 func (r *Repository) Load(dataFilePath string) error {
 	if err := open(r, dataFilePath); err != nil {
 		return errors.Wrap(err, "load")
@@ -78,7 +82,7 @@ func retrieveData(r *Repository) ([]user.User, error) {
 		return []user.User{}, errors.Wrap(err, "retrieveData")
 	}
 
-	users, err := DecodeUsers(dataB)
+	users, err := DeserializeUsers(dataB)
 	if err != nil {
 		return []user.User{}, errors.Wrap(err, "retrieveData")
 	}
@@ -145,7 +149,7 @@ func (r *Repository) Delete(rollNo int) error {
 }
 
 func (r *Repository) Save(users []user.User) error {
-	dataB, err := EncodeUsers(users)
+	dataB, err := SerializeUsers(users)
 	if err != nil {
 		return errors.Wrap(err, "save")
 	}
@@ -167,7 +171,7 @@ func (r *Repository) Save(users []user.User) error {
 	return nil
 }
 
-func EncodeUsers(users []user.User) ([]byte, error) {
+func SerializeUsers(users []user.User) ([]byte, error) {
 	userB, err := json.Marshal(users)
 	if err != nil {
 		return []byte{}, errors.Wrap(err, "encodeUse")
@@ -176,7 +180,7 @@ func EncodeUsers(users []user.User) ([]byte, error) {
 	return userB, nil
 }
 
-func DecodeUsers(userB []byte) ([]user.User, error) {
+func DeserializeUsers(userB []byte) ([]user.User, error) {
 	var users []user.User
 	if err := json.Unmarshal(userB, &users); err != nil {
 		return []user.User{}, errors.Wrap(err, "decodeUser")

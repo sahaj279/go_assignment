@@ -7,8 +7,8 @@ import (
 )
 
 func main() {
-	repository := repo.Repository{}
-	newMenu := menu.NewMenu(&repository)
+	repository := repo.NewRepository()
+	newMenu := menu.NewMenu(repository)
 	if err := newMenu.Init(); err != nil {
 		menu.PrintError(errors.Wrap(err, "main"))
 	}
