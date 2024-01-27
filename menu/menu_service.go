@@ -26,7 +26,7 @@ const (
 func (m *Menu) addUser() error {
 	fmt.Printf("Add user details ")
 
-	name, age, address, rollNo, courses, err := getDetails()
+	name, age, address, rollNo, courses, err := GetDetails()
 	if err != nil {
 		return errors.Wrap(err, "addUser")
 	}
@@ -45,7 +45,7 @@ func (m *Menu) addUser() error {
 	return nil
 }
 
-func getDetails() (name string, age int, address string, rollNo int, courses []string, err error) {
+func GetDetails() (name string, age int, address string, rollNo int, courses []string, err error) {
 	scanner := bufio.NewScanner(os.Stdin)
 	fmt.Printf("Full Name: ")
 	if scanner.Scan() {
@@ -93,7 +93,7 @@ func getDetails() (name string, age int, address string, rollNo int, courses []s
 		return
 	}
 
-	courses, err = getCourse()
+	courses, err = getCourse(scanner)
 	if err != nil {
 		err = errors.Wrap(err, "getDetails")
 		return
@@ -101,12 +101,11 @@ func getDetails() (name string, age int, address string, rollNo int, courses []s
 	return
 }
 
-func getCourse() ([]string, error) {
-	scanner := bufio.NewScanner(os.Stdin)
+func getCourse(scanner *bufio.Scanner) ([]string, error) {
 	fmt.Printf("Enter number of courses you want to enroll (at least %d) ", MinCourses)
 
 	var courses []string
-	var numCourses int
+	var numCourses int = -1
 
 	if scanner.Scan() {
 		n, err := strconv.Atoi(string(scanner.Bytes()))
@@ -121,7 +120,7 @@ func getCourse() ([]string, error) {
 	}
 
 	if numCourses < MinCourses || numCourses > TotalCourses {
-		err := fmt.Errorf("select at least %d and not more than %d", MinCourses, TotalCourses)
+		err := fmt.Errorf("select at least %d and not more than %d while you entered %d", MinCourses, TotalCourses, numCourses)
 		return []string{}, errors.Wrap(err, "getCourse")
 	}
 

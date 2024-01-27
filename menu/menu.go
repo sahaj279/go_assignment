@@ -32,11 +32,11 @@ type Menu struct {
 }
 
 func (m *Menu) Init() error {
+	defer m.repository.Close()
 	if err := m.repository.Load(DataFilePath); err != nil {
 		return errors.Wrap(err, "init")
 	}
 
-	defer m.repository.Close()
 	defer fmt.Println("Menu application finished!")
 
 	for {
