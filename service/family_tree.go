@@ -17,11 +17,6 @@ type familyTree struct {
 	nodes map[int]*node
 }
 
-type edge struct {
-	parentID int
-	childID  int
-}
-
 type Svc interface {
 	AddNode(id int, name string, metadata map[string]string) error
 	AddEdge(childID, parentID int) error
@@ -30,8 +25,8 @@ type Svc interface {
 	GetParents(id int) ([]*node, error)
 	GetDescendants(id int) ([]*node, error)
 	DeleteNode(id int) error
-	GetEdges() []edge
 	DeleteEdge(parentID, childID int) error
+	ListNodesID(interface{}) []int
 }
 
 func NewFamilyTree() *familyTree {

@@ -1,7 +1,13 @@
 package main
 
-import "github.com/sahaj279/go_assignment/app"
+import (
+	"log"
+
+	"github.com/sahaj279/go_assignment/app"
+)
 
 func main() {
-	app.Init()
+	if err := app.Init(); err != nil {
+		log.Println("error in init", err)
+	}
 }

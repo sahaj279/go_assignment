@@ -28,8 +28,8 @@ func (ft *familyTree) AddEdge(parentID, childID int) error {
 	}
 
 	ancestors, _ := ft.GetAncestors(parentID)
-	for id := range ancestors {
-		if id == childID {
+	for _, node := range ancestors {
+		if node.id == childID {
 			return errors.Errorf("the edge with parent %d and child %d will cause a cycle", parentID, childID)
 		}
 	}
@@ -129,17 +129,12 @@ func (ft *familyTree) DeleteNode(id int) error {
 }
 
 // 8 GetDependencies method.
-func (ft *familyTree) GetEdges() []edge {
-	edges := make([]edge, 0)
+func (ft *familyTree) GetEdgeCount() int {
+	count := 0
 	for node := range ft.nodes {
-		for child := range ft.nodes[node].children {
-			edges = append(edges, edge{
-				parentID: node,
-				childID:  child,
-			})
-		}
+		count += len(ft.nodes[node].children)
 	}
-	return edges
+	return count
 }
 
 // 9 DeleteDependency method.
@@ -164,4 +159,20 @@ func (ft *familyTree) DeleteEdge(parentID, childID int) error {
 	delete(ft.nodes[parentID].children, childID)
 	delete(ft.nodes[childID].parents, parentID)
 	return nil
+}
+
+// 10 Listing Node IDs.
+func (ft *familyTree) ListNodesID(nodes interface{}) []int {
+	var ids []int
+	switch n := nodes.(type) {
+	case []*node:
+		for _, id := range n {
+			ids = append(ids, id.id)
+		}
+	case map[int]*node:
+		for id := range n {
+			ids = append(ids, id)
+		}
+	}
+	return ids
 }

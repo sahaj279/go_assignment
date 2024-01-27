@@ -6,9 +6,9 @@ import (
 )
 
 func TestAddNode(t *testing.T) {
-	ft := NewFamilyTree()
 	tests := []struct {
 		scenario string
+		ft       familyTree
 		id       int
 		name     string
 		metadata map[string]string
@@ -16,6 +16,9 @@ func TestAddNode(t *testing.T) {
 	}{
 		{
 			scenario: "node gets added successfully",
+			ft: familyTree{
+				nodes: map[int]*node{},
+			},
 			id:       1,
 			name:     "A",
 			metadata: nil,
@@ -23,6 +26,13 @@ func TestAddNode(t *testing.T) {
 		},
 		{
 			scenario: "node do not get added as it is repeated",
+			ft: familyTree{
+				nodes: map[int]*node{
+					1: {
+						id: 1,
+					},
+				},
+			},
 			id:       1,
 			name:     "A",
 			metadata: nil,
@@ -31,7 +41,7 @@ func TestAddNode(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		err := ft.AddNode(tc.id, tc.name, tc.metadata)
+		err := tc.ft.AddNode(tc.id, tc.name, tc.metadata)
 		if err != nil && tc.err == nil {
 			t.Errorf("for scenario: %s, expected %v, got %v", tc.scenario, tc.err, err)
 		}
@@ -42,49 +52,168 @@ func TestAddNode(t *testing.T) {
 }
 
 func TestAddEdge(t *testing.T) {
-	ft := NewFamilyTree()
-	ft.AddNode(1, "A", nil)
-	ft.AddNode(2, "B", nil)
-	ft.AddNode(3, "C", nil)
-	ft.AddNode(4, "D", nil)
-	ft.AddNode(5, "E", nil)
-	ft.AddEdge(1, 2)
-	ft.AddEdge(5, 2)
-	ft.AddEdge(2, 3)
-	ft.AddEdge(4, 3)
-
 	tests := []struct {
 		scenario string
+		ft       familyTree
 		childID  int
 		parentID int
 		err      error
 	}{
 		{
 			scenario: "a valid edge",
+			ft: familyTree{
+				nodes: map[int]*node{
+					1: {
+						id: 1,
+						children: map[int]*node{
+							2: {
+								id: 2,
+							},
+						},
+					},
+					2: {
+						id: 2,
+						parents: map[int]*node{
+							1: {
+								id: 1,
+							},
+						},
+						children: map[int]*node{
+							3: {
+								id: 3,
+							},
+						},
+					},
+					3: {
+						id: 3,
+						parents: map[int]*node{
+							2: {
+								id: 2,
+							},
+						},
+					},
+				},
+			},
 			childID:  2,
 			parentID: 1,
 			err:      nil,
 		},
 		{
 			scenario: "a valid edge adding again",
-			childID:  2,
-			parentID: 1,
+			ft: familyTree{
+				nodes: map[int]*node{
+					1: {
+						id: 1,
+						children: map[int]*node{
+							2: {
+								id: 2,
+							},
+						},
+					},
+					2: {
+						id: 2,
+						parents: map[int]*node{
+							1: {
+								id: 1,
+							},
+						},
+					},
+					3: {
+						id: 3,
+					},
+				},
+			},
+			childID:  3,
+			parentID: 2,
 			err:      nil,
 		},
 		{
 			scenario: "invalid edge parent and child same",
-			childID:  2,
-			parentID: 2,
+			ft: familyTree{
+				nodes: map[int]*node{
+					1: {
+						id: 1,
+					},
+				},
+			},
+			childID:  1,
+			parentID: 1,
 			err:      errors.New("parent and child have same id"),
 		},
 		{
 			scenario: "cyclic case: child trying to become a parent",
+			ft: familyTree{
+				nodes: map[int]*node{
+					1: {
+						id: 1,
+						children: map[int]*node{
+							2: {
+								id: 2,
+							},
+						},
+					},
+					2: {
+						id: 2,
+						parents: map[int]*node{
+							1: {
+								id: 1,
+							},
+						},
+						children: map[int]*node{
+							3: {
+								id: 3,
+							},
+						},
+					},
+					3: {
+						id: 3,
+						parents: map[int]*node{
+							2: {
+								id: 2,
+							},
+						},
+					},
+				},
+			},
 			childID:  1,
 			parentID: 2,
 			err:      errors.New("cyclic case"),
 		},
 		{
 			scenario: "parent id not exist",
+			ft: familyTree{
+				nodes: map[int]*node{
+					1: {
+						id: 1,
+						children: map[int]*node{
+							2: {
+								id: 2,
+							},
+						},
+					},
+					2: {
+						id: 2,
+						parents: map[int]*node{
+							1: {
+								id: 1,
+							},
+						},
+						children: map[int]*node{
+							3: {
+								id: 3,
+							},
+						},
+					},
+					3: {
+						id: 3,
+						parents: map[int]*node{
+							2: {
+								id: 2,
+							},
+						},
+					},
+				},
+			},
 			childID:  1,
 			parentID: 7,
 			err:      errors.New("parent id not exist"),
@@ -92,12 +221,12 @@ func TestAddEdge(t *testing.T) {
 		{
 			scenario: "child id not exist",
 			childID:  9,
-			parentID: 7,
+			parentID: 1,
 			err:      errors.New("parent and child id not exist"),
 		},
 	}
 	for _, tc := range tests {
-		err := ft.AddEdge(tc.parentID, tc.childID)
+		err := tc.ft.AddEdge(tc.parentID, tc.childID)
 		if tc.err != nil && err == nil {
 			t.Errorf("Scenario: %s \n got: %v, expected: %v", tc.scenario, err, tc.err)
 		} else if tc.err == nil && err != nil {
@@ -107,42 +236,131 @@ func TestAddEdge(t *testing.T) {
 }
 
 func TestGetAncestors(t *testing.T) {
-	ft := NewFamilyTree()
-	ft.AddNode(1, "A", nil)
-	ft.AddNode(2, "B", nil)
-	ft.AddNode(3, "C", nil)
-	ft.AddNode(4, "D", nil)
-	ft.AddNode(5, "E", nil)
-	ft.AddEdge(1, 2)
-	ft.AddEdge(5, 2)
-	ft.AddEdge(2, 3)
-	ft.AddEdge(4, 3)
-
 	tests := []struct {
 		scenario  string
+		ft        familyTree
 		nodeID    int
 		ancestors []int
 		err       error
 	}{
 		{
-			scenario:  "List node ancestors when node exist",
-			nodeID:    3,
-			ancestors: []int{1, 5, 2, 4},
+			scenario: "List node ancestors when node exist",
+			ft: familyTree{
+				nodes: map[int]*node{
+					1: {
+						id: 1,
+						children: map[int]*node{
+							2: {
+								id: 2,
+							},
+						},
+					},
+					2: {
+						id: 2,
+						parents: map[int]*node{
+							1: {
+								id: 1,
+							},
+						},
+						children: map[int]*node{
+							3: {
+								id: 3,
+							},
+						},
+					},
+					3: {
+						id: 3,
+						parents: map[int]*node{
+							2: {
+								id: 2,
+							},
+						},
+					},
+				},
+			},
+			nodeID:    2,
+			ancestors: []int{1},
 			err:       nil,
 		}, {
-			scenario:  "List node ancestors when node doesn't exist",
+			scenario: "List node ancestors when node doesn't exist",
+			ft: familyTree{
+				nodes: map[int]*node{
+					1: {
+						id: 1,
+						children: map[int]*node{
+							2: {
+								id: 2,
+							},
+						},
+					},
+					2: {
+						id: 2,
+						parents: map[int]*node{
+							1: {
+								id: 1,
+							},
+						},
+						children: map[int]*node{
+							3: {
+								id: 3,
+							},
+						},
+					},
+					3: {
+						id: 3,
+						parents: map[int]*node{
+							2: {
+								id: 2,
+							},
+						},
+					},
+				},
+			},
 			nodeID:    12,
 			ancestors: []int{},
 			err:       errors.New("node does not exist"),
 		}, {
-			scenario:  "List node ancestors when node exist",
+			scenario: "List node ancestors when node exist",
+			ft: familyTree{
+				nodes: map[int]*node{
+					1: {
+						id: 1,
+						children: map[int]*node{
+							2: {
+								id: 2,
+							},
+						},
+					},
+					2: {
+						id: 2,
+						parents: map[int]*node{
+							1: {
+								id: 1,
+							},
+						},
+						children: map[int]*node{
+							3: {
+								id: 3,
+							},
+						},
+					},
+					3: {
+						id: 3,
+						parents: map[int]*node{
+							2: {
+								id: 2,
+							},
+						},
+					},
+				},
+			},
 			nodeID:    1,
 			ancestors: []int{},
 			err:       nil,
 		},
 	}
 	for _, tc := range tests {
-		nodes, err := ft.GetAncestors(tc.nodeID)
+		nodes, err := tc.ft.GetAncestors(tc.nodeID)
 		if tc.err != nil && err == nil {
 			t.Errorf("Scenario: %s \n got: %v, expected: %v", tc.scenario, err, tc.err)
 		} else if tc.err == nil && err != nil {
@@ -171,42 +389,131 @@ func isNodePresent(slice []*node, target int) bool {
 }
 
 func TestGetParents(t *testing.T) {
-	ft := NewFamilyTree()
-	ft.AddNode(1, "A", nil)
-	ft.AddNode(2, "B", nil)
-	ft.AddNode(3, "C", nil)
-	ft.AddNode(4, "D", nil)
-	ft.AddNode(5, "E", nil)
-	ft.AddEdge(1, 2)
-	ft.AddEdge(5, 2)
-	ft.AddEdge(2, 3)
-	ft.AddEdge(4, 3)
-
 	tests := []struct {
 		scenario string
 		nodeID   int
+		ft       familyTree
 		parents  []int
 		err      error
 	}{
 		{
 			scenario: "List node parents when node exist",
-			nodeID:   3,
-			parents:  []int{2, 4},
-			err:      nil,
+			ft: familyTree{
+				nodes: map[int]*node{
+					1: {
+						id: 1,
+						children: map[int]*node{
+							2: {
+								id: 2,
+							},
+						},
+					},
+					2: {
+						id: 2,
+						parents: map[int]*node{
+							1: {
+								id: 1,
+							},
+						},
+						children: map[int]*node{
+							3: {
+								id: 3,
+							},
+						},
+					},
+					3: {
+						id: 3,
+						parents: map[int]*node{
+							2: {
+								id: 2,
+							},
+						},
+					},
+				},
+			},
+			nodeID:  2,
+			parents: []int{1},
+			err:     nil,
 		}, {
 			scenario: "List node parents when node doesn't exist",
-			nodeID:   12,
-			parents:  []int{},
-			err:      errors.New("node does not exist"),
+			ft: familyTree{
+				nodes: map[int]*node{
+					1: {
+						id: 1,
+						children: map[int]*node{
+							2: {
+								id: 2,
+							},
+						},
+					},
+					2: {
+						id: 2,
+						parents: map[int]*node{
+							1: {
+								id: 1,
+							},
+						},
+						children: map[int]*node{
+							3: {
+								id: 3,
+							},
+						},
+					},
+					3: {
+						id: 3,
+						parents: map[int]*node{
+							2: {
+								id: 2,
+							},
+						},
+					},
+				},
+			},
+			nodeID:  12,
+			parents: []int{},
+			err:     errors.New("node does not exist"),
 		}, {
 			scenario: "List node parents when node exist",
-			nodeID:   1,
-			parents:  []int{},
-			err:      nil,
+			ft: familyTree{
+				nodes: map[int]*node{
+					1: {
+						id: 1,
+						children: map[int]*node{
+							2: {
+								id: 2,
+							},
+						},
+					},
+					2: {
+						id: 2,
+						parents: map[int]*node{
+							1: {
+								id: 1,
+							},
+						},
+						children: map[int]*node{
+							3: {
+								id: 3,
+							},
+						},
+					},
+					3: {
+						id: 3,
+						parents: map[int]*node{
+							2: {
+								id: 2,
+							},
+						},
+					},
+				},
+			},
+			nodeID:  1,
+			parents: []int{},
+			err:     nil,
 		},
 	}
 	for _, tc := range tests {
-		nodes, err := ft.GetParents(tc.nodeID)
+		nodes, err := tc.ft.GetParents(tc.nodeID)
 		if tc.err != nil && err == nil {
 			t.Errorf("Scenario: %s \n got: %v, expected: %v", tc.scenario, err, tc.err)
 		} else if tc.err == nil && err != nil {
@@ -226,42 +533,131 @@ func TestGetParents(t *testing.T) {
 }
 
 func TestGetChildren(t *testing.T) {
-	ft := NewFamilyTree()
-	ft.AddNode(1, "A", nil)
-	ft.AddNode(2, "B", nil)
-	ft.AddNode(3, "C", nil)
-	ft.AddNode(4, "D", nil)
-	ft.AddNode(5, "E", nil)
-	ft.AddEdge(1, 2)
-	ft.AddEdge(5, 2)
-	ft.AddEdge(2, 3)
-	ft.AddEdge(4, 3)
-
 	tests := []struct {
 		scenario string
 		nodeID   int
+		ft       familyTree
 		children []int
 		err      error
 	}{
 		{
 			scenario: "List node children when node exist",
-			nodeID:   3,
-			children: []int{},
+			ft: familyTree{
+				nodes: map[int]*node{
+					1: {
+						id: 1,
+						children: map[int]*node{
+							2: {
+								id: 2,
+							},
+						},
+					},
+					2: {
+						id: 2,
+						parents: map[int]*node{
+							1: {
+								id: 1,
+							},
+						},
+						children: map[int]*node{
+							3: {
+								id: 3,
+							},
+						},
+					},
+					3: {
+						id: 3,
+						parents: map[int]*node{
+							2: {
+								id: 2,
+							},
+						},
+					},
+				},
+			},
+			nodeID:   2,
+			children: []int{3},
 			err:      nil,
 		}, {
 			scenario: "List node children when node doesn't exist",
+			ft: familyTree{
+				nodes: map[int]*node{
+					1: {
+						id: 1,
+						children: map[int]*node{
+							2: {
+								id: 2,
+							},
+						},
+					},
+					2: {
+						id: 2,
+						parents: map[int]*node{
+							1: {
+								id: 1,
+							},
+						},
+						children: map[int]*node{
+							3: {
+								id: 3,
+							},
+						},
+					},
+					3: {
+						id: 3,
+						parents: map[int]*node{
+							2: {
+								id: 2,
+							},
+						},
+					},
+				},
+			},
 			nodeID:   12,
 			children: []int{},
 			err:      errors.New("node does not exist"),
 		}, {
 			scenario: "List node children when node exist",
+			ft: familyTree{
+				nodes: map[int]*node{
+					1: {
+						id: 1,
+						children: map[int]*node{
+							2: {
+								id: 2,
+							},
+						},
+					},
+					2: {
+						id: 2,
+						parents: map[int]*node{
+							1: {
+								id: 1,
+							},
+						},
+						children: map[int]*node{
+							3: {
+								id: 3,
+							},
+						},
+					},
+					3: {
+						id: 3,
+						parents: map[int]*node{
+							2: {
+								id: 2,
+							},
+						},
+					},
+				},
+			},
 			nodeID:   1,
 			children: []int{2},
 			err:      nil,
 		},
 	}
 	for _, tc := range tests {
-		nodes, err := ft.GetChildren(tc.nodeID)
+		nodes, err := tc.ft.GetChildren(tc.nodeID)
 		if tc.err != nil && err == nil {
 			t.Errorf("Scenario: %s \n got: %v, expected: %v", tc.scenario, err, tc.err)
 		} else if tc.err == nil && err != nil {
@@ -281,42 +677,135 @@ func TestGetChildren(t *testing.T) {
 }
 
 func TestGetDescendants(t *testing.T) {
-	ft := NewFamilyTree()
-	ft.AddNode(1, "A", nil)
-	ft.AddNode(2, "B", nil)
-	ft.AddNode(3, "C", nil)
-	ft.AddNode(4, "D", nil)
-	ft.AddNode(5, "E", nil)
-	ft.AddEdge(1, 2)
-	ft.AddEdge(5, 2)
-	ft.AddEdge(2, 3)
-	ft.AddEdge(4, 3)
-
 	tests := []struct {
 		scenario    string
+		ft          familyTree
 		nodeID      int
 		descendants []int
 		err         error
 	}{
 		{
-			scenario:    "List node descendants when node exist",
-			nodeID:      3,
-			descendants: []int{},
+			scenario: "List node descendants when node exist",
+			ft: familyTree{
+				nodes: map[int]*node{
+					1: {
+						id: 1,
+						children: map[int]*node{
+							2: {
+								id: 2,
+							},
+						},
+					},
+					2: {
+						id: 2,
+						parents: map[int]*node{
+							1: {
+								id: 1,
+							},
+						},
+						children: map[int]*node{
+							3: {
+								id: 3,
+							},
+						},
+					},
+					3: {
+						id: 3,
+						parents: map[int]*node{
+							2: {
+								id: 2,
+							},
+						},
+					},
+				},
+			},
+			nodeID:      2,
+			descendants: []int{3},
 			err:         nil,
 		}, {
-			scenario:    "List node descendants when node doesn't exist",
+			scenario: "List node descendants when node doesn't exist",
+			ft: familyTree{
+				nodes: map[int]*node{
+					1: {
+						id: 1,
+						children: map[int]*node{
+							2: {
+								id: 2,
+							},
+						},
+					},
+					2: {
+						id: 2,
+						parents: map[int]*node{
+							1: {
+								id: 1,
+							},
+						},
+						children: map[int]*node{
+							3: {
+								id: 3,
+							},
+						},
+					},
+					3: {
+						id: 3,
+						parents: map[int]*node{
+							2: {
+								id: 2,
+							},
+						},
+					},
+				},
+			},
 			nodeID:      12,
 			descendants: []int{},
 			err:         errors.New("node does not exist"),
 		}, {
-			scenario:    "List node descendants when node exist",
+			scenario: "List node descendants when node exist",
+			ft: familyTree{
+				nodes: map[int]*node{
+					1: {
+						id: 1,
+						children: map[int]*node{
+							2: {
+								id: 2, children: map[int]*node{
+									3: {
+										id: 3,
+									},
+								},
+							},
+						},
+					},
+					2: {
+						id: 2,
+						parents: map[int]*node{
+							1: {
+								id: 1,
+							},
+						},
+						children: map[int]*node{
+							3: {
+								id: 3,
+							},
+						},
+					},
+					3: {
+						id: 3,
+						parents: map[int]*node{
+							2: {
+								id: 2,
+							},
+						},
+					},
+				},
+			},
 			nodeID:      1,
 			descendants: []int{2, 3},
 			err:         nil,
 		},
 	}
 	for _, tc := range tests {
-		nodes, err := ft.GetDescendants(tc.nodeID)
+		nodes, err := tc.ft.GetDescendants(tc.nodeID)
 		if tc.err != nil && err == nil {
 			t.Errorf("Scenario: %s \n got: %v, expected: %v", tc.scenario, err, tc.err)
 		} else if tc.err == nil && err != nil {
@@ -329,58 +818,138 @@ func TestGetDescendants(t *testing.T) {
 
 		for _, id := range tc.descendants {
 			if !isNodePresent(nodes, id) {
-				t.Errorf("Scenario: %s \n %d got: false, expected: true", tc.scenario, id)
+				t.Errorf("Scenario: %s \n id not present %d got: false, expected: true", tc.scenario, id)
 			}
 		}
 	}
 }
 
 func TestDeleteNode(t *testing.T) {
-	ft := NewFamilyTree()
-	ft.AddNode(1, "A", nil)
-	ft.AddNode(2, "B", nil)
-	ft.AddNode(3, "C", nil)
-	ft.AddNode(4, "D", nil)
-	ft.AddNode(5, "E", nil)
-	ft.AddEdge(1, 2)
-	ft.AddEdge(5, 2)
-	ft.AddEdge(2, 3)
-	ft.AddEdge(4, 3)
-	ft.AddEdge(1, 3)
-
 	tests := []struct {
-		scenario string
-		nodeID   int
-		edges    []edge
-		err      error
+		scenario  string
+		nodeID    int
+		edgeCount int
+		ft        familyTree
+		err       error
 	}{
 		{
 			scenario: "Deleting an invalid node",
-			nodeID:   9,
-			edges:    []edge{},
-			err:      errors.New("node does not exists"),
+			ft: familyTree{
+				nodes: map[int]*node{
+					1: {
+						id: 1,
+						children: map[int]*node{
+							2: {
+								id: 2,
+							},
+						},
+					},
+					2: {
+						id: 2,
+						parents: map[int]*node{
+							1: {
+								id: 1,
+							},
+						},
+						children: map[int]*node{
+							3: {
+								id: 3,
+							},
+						},
+					},
+					3: {
+						id: 3,
+						parents: map[int]*node{
+							2: {
+								id: 2,
+							},
+						},
+					},
+				},
+			},
+			nodeID:    9,
+			edgeCount: 0,
+			err:       errors.New("node does not exists"),
 		}, {
 			scenario: "Deleting a valid node",
 			nodeID:   2,
-			edges: []edge{
-				{
-					parentID: 1,
-					childID:  3,
-				}, {
-					parentID: 4,
-					childID:  3,
+			ft: familyTree{
+				nodes: map[int]*node{
+					1: {
+						id: 1,
+						children: map[int]*node{
+							2: {
+								id: 2,
+							},
+						},
+					},
+					2: {
+						id: 2,
+						parents: map[int]*node{
+							1: {
+								id: 1,
+							},
+						},
+						children: map[int]*node{
+							3: {
+								id: 3,
+							},
+						},
+					},
+					3: {
+						id: 3,
+						parents: map[int]*node{
+							2: {
+								id: 2,
+							},
+						},
+					},
 				},
 			},
-			err: nil,
+			edgeCount: 0,
+			err:       nil,
 		}, {
 			scenario: "Deleting valid node which removes all edges ",
-			nodeID:   3,
-			edges:    []edge{},
-			err:      nil,
+			ft: familyTree{
+				nodes: map[int]*node{
+					1: {
+						id: 1,
+						children: map[int]*node{
+							2: {
+								id: 2,
+							},
+						},
+					},
+					2: {
+						id: 2,
+						parents: map[int]*node{
+							1: {
+								id: 1,
+							},
+						},
+						children: map[int]*node{
+							3: {
+								id: 3,
+							},
+						},
+					},
+					3: {
+						id: 3,
+						parents: map[int]*node{
+							2: {
+								id: 2,
+							},
+						},
+					},
+				},
+			},
+			nodeID:    2,
+			edgeCount: 0,
+			err:       nil,
 		},
 	}
 	for _, tc := range tests {
-		err := ft.DeleteNode(tc.nodeID)
+		err := tc.ft.DeleteNode(tc.nodeID)
 		if tc.err != nil && err == nil {
 			t.Errorf("Scenario: %s \n got: %v, expected: %v", tc.scenario, err, tc.err)
 		} else if tc.err == nil && err != nil {
@@ -388,42 +957,97 @@ func TestDeleteNode(t *testing.T) {
 		}
 
 		if tc.err == nil && err == nil {
-			edges := ft.GetEdges()
-			if len(edges) != len(tc.edges) {
-				t.Errorf("Scenario: %s \n got no of dependencies: %v, expected no of dependencies: %v", tc.scenario, len(edges), len(tc.edges))
+			edgeCount := tc.ft.GetEdgeCount()
+			if edgeCount != tc.edgeCount {
+				t.Errorf("Scenario: %s \n got no of dependencies: %v, expected no of dependencies: %v", tc.scenario, edgeCount, tc.edgeCount)
 			}
 		}
 	}
 }
 
 func TestDeleteEdge(t *testing.T) {
-	ft := NewFamilyTree()
-	ft.AddNode(1, "A", nil)
-	ft.AddNode(2, "B", nil)
-	ft.AddNode(3, "C", nil)
-	ft.AddNode(4, "D", nil)
-	ft.AddNode(5, "E", nil)
-	ft.AddEdge(1, 2)
-	ft.AddEdge(5, 2)
-	ft.AddEdge(2, 3)
-	ft.AddEdge(4, 3)
-	ft.AddEdge(1, 3)
-
 	tests := []struct {
 		scenario       string
 		childID        int
 		parentID       int
 		err            error
 		remainingEdges int
+		ft             familyTree
 	}{
 		{
 			scenario: "an invalid edge parent invalid",
+			ft: familyTree{
+				nodes: map[int]*node{
+					1: {
+						id: 1,
+						children: map[int]*node{
+							2: {
+								id: 2,
+							},
+						},
+					},
+					2: {
+						id: 2,
+						parents: map[int]*node{
+							1: {
+								id: 1,
+							},
+						},
+						children: map[int]*node{
+							3: {
+								id: 3,
+							},
+						},
+					},
+					3: {
+						id: 3,
+						parents: map[int]*node{
+							2: {
+								id: 2,
+							},
+						},
+					},
+				},
+			},
 			childID:  2,
 			parentID: 6,
 			err:      errors.New("parent is invalid"),
 		},
 		{
 			scenario: "an invalid edge child is invalid",
+			ft: familyTree{
+				nodes: map[int]*node{
+					1: {
+						id: 1,
+						children: map[int]*node{
+							2: {
+								id: 2,
+							},
+						},
+					},
+					2: {
+						id: 2,
+						parents: map[int]*node{
+							1: {
+								id: 1,
+							},
+						},
+						children: map[int]*node{
+							3: {
+								id: 3,
+							},
+						},
+					},
+					3: {
+						id: 3,
+						parents: map[int]*node{
+							2: {
+								id: 2,
+							},
+						},
+					},
+				},
+			},
 			childID:  6,
 			parentID: 1,
 			err:      errors.New("child is invalid"),
@@ -432,31 +1056,163 @@ func TestDeleteEdge(t *testing.T) {
 			scenario: "invalid edge parent and child same",
 			childID:  2,
 			parentID: 2,
-			err:      errors.New("parent and child have same id"),
+			ft: familyTree{
+				nodes: map[int]*node{
+					1: {
+						id: 1,
+						children: map[int]*node{
+							2: {
+								id: 2,
+							},
+						},
+					},
+					2: {
+						id: 2,
+						parents: map[int]*node{
+							1: {
+								id: 1,
+							},
+						},
+						children: map[int]*node{
+							3: {
+								id: 3,
+							},
+						},
+					},
+					3: {
+						id: 3,
+						parents: map[int]*node{
+							2: {
+								id: 2,
+							},
+						},
+					},
+				},
+			},
+			err: errors.New("parent and child have same id"),
 		},
 		{
 			scenario: "no edge exists between two nodes",
 			childID:  1,
-			parentID: 5,
-			err:      errors.New("no edge from parent to child"),
+			parentID: 3,
+			ft: familyTree{
+				nodes: map[int]*node{
+					1: {
+						id: 1,
+						children: map[int]*node{
+							2: {
+								id: 2,
+							},
+						},
+					},
+					2: {
+						id: 2,
+						parents: map[int]*node{
+							1: {
+								id: 1,
+							},
+						},
+						children: map[int]*node{
+							3: {
+								id: 3,
+							},
+						},
+					},
+					3: {
+						id: 3,
+						parents: map[int]*node{
+							2: {
+								id: 2,
+							},
+						},
+					},
+				},
+			},
+			err: errors.New("no edge from parent to child"),
 		},
 		{
-			scenario:       "valid edge case 1",
-			childID:        2,
-			parentID:       1,
+			scenario: "valid edge case 1",
+			parentID: 1,
+			childID:  2,
+			ft: familyTree{
+				nodes: map[int]*node{
+					1: {
+						id: 1,
+						children: map[int]*node{
+							2: {
+								id: 2,
+							},
+						},
+					},
+					2: {
+						id: 2,
+						parents: map[int]*node{
+							1: {
+								id: 1,
+							},
+						},
+						children: map[int]*node{
+							3: {
+								id: 3,
+							},
+						},
+					},
+					3: {
+						id: 3,
+						parents: map[int]*node{
+							2: {
+								id: 2,
+							},
+						},
+					},
+				},
+			},
 			err:            nil,
-			remainingEdges: 4,
+			remainingEdges: 1,
 		},
 		{
-			scenario:       "valid edge case 2",
+			scenario: "valid edge case 2",
+			ft: familyTree{
+				nodes: map[int]*node{
+					1: {
+						id: 1,
+						children: map[int]*node{
+							2: {
+								id: 2,
+							},
+						},
+					},
+					2: {
+						id: 2,
+						parents: map[int]*node{
+							1: {
+								id: 1,
+							},
+						},
+						children: map[int]*node{
+							3: {
+								id: 3,
+							},
+						},
+					},
+					3: {
+						id: 3,
+						parents: map[int]*node{
+							2: {
+								id: 2,
+							},
+						},
+					},
+				},
+			},
 			childID:        3,
 			parentID:       2,
 			err:            nil,
-			remainingEdges: 3,
+			remainingEdges: 1,
 		},
 	}
 	for _, tc := range tests {
-		err := ft.DeleteEdge(tc.parentID, tc.childID)
+		err := tc.ft.DeleteEdge(tc.parentID, tc.childID)
 		if tc.err != nil && err == nil {
 			t.Errorf("Scenario: %s \n got: %v, expected: %v", tc.scenario, err, tc.err)
 		} else if tc.err == nil && err != nil {
@@ -464,9 +1220,9 @@ func TestDeleteEdge(t *testing.T) {
 		}
 
 		if tc.err == nil && err == nil {
-			edges := ft.GetEdges()
-			if len(edges) != tc.remainingEdges {
-				t.Errorf("Scenario: %s \n got no of dependencies: %v, expected no of dependencies: %v", tc.scenario, len(edges), tc.remainingEdges)
+			edgeCount := tc.ft.GetEdgeCount()
+			if edgeCount != tc.remainingEdges {
+				t.Errorf("Scenario: %s \n got no of dependencies: %v, expected no of dependencies: %v", tc.scenario, edgeCount, tc.remainingEdges)
 			}
 		}
 	}
