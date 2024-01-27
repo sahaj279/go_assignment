@@ -2,7 +2,6 @@ package repository
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"slices"
 	"sort"
@@ -13,6 +12,7 @@ import (
 	"github.com/sahaj279/go_assignment/user"
 )
 
+//go:generate mockgen -source=repository.go -destination=mock_repository.go
 type Svc interface {
 	Load(dataFilePath string) error
 	Add(user.User) error
@@ -37,7 +37,6 @@ func (r *Repository) Load(dataFilePath string) error {
 	}
 
 	r.users = make(map[int]user.User)
-
 	users, err := retrieveData(r)
 	if err != nil {
 		return errors.Wrap(err, "load")
@@ -55,7 +54,7 @@ func open(r *Repository, dataFilePath string) error {
 		return nil
 	}
 
-	file, err := os.OpenFile(dataFilePath, os.O_RDWR|os.O_CREATE, 0755)
+	file, err := os.OpenFile(dataFilePath, os.O_RDWR|os.O_CREATE, 0o755)
 	if err != nil {
 		return errors.Wrap(err, "open")
 	}
@@ -73,7 +72,7 @@ func retrieveData(r *Repository) ([]user.User, error) {
 
 	len := fs.Size()
 	if len == 0 {
-		return []user.User{}, errors.Wrap(err, "retrieveData")
+		return []user.User{}, nil
 	}
 
 	dataB := make([]byte, len)
@@ -92,7 +91,7 @@ func retrieveData(r *Repository) ([]user.User, error) {
 
 func (r *Repository) Add(user user.User) error {
 	if _, exist := r.users[user.RollNo]; exist {
-		err := fmt.Errorf("user already exists for %d roll number", user.RollNo)
+		err := errors.Errorf("user already exists for %d roll number", user.RollNo)
 		return errors.Wrap(err, "add")
 	}
 

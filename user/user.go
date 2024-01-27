@@ -14,7 +14,7 @@ type User struct {
 	Name    string        `json:"name,omitempty"`
 	Age     int           `json:"age,omitempty"`
 	Address string        `json:"address,omitempty"`
-	RollNo  int           `json:"roll_no,omitempty"`
+	RollNo  int           `json:"roll_no"`
 	Courses []enum.Course `json:"courses,omitempty"` // set of courses
 }
 
