@@ -12,7 +12,7 @@ import (
 	"github.com/sahaj279/go_assignment/user"
 )
 
-//go:generate mockgen -source=repository.go -destination=mock_repository.go
+//go:generate mockgen -source=repository.go -destination=mock_repository.go -package=repository
 type Svc interface {
 	Load(dataFilePath string) error
 	Add(user.User) error
