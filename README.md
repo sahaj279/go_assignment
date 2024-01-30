@@ -6,6 +6,8 @@ Develop a multi-threaded go program where one thread reads the data from the dat
 
 
 ## Design
+![Your paragraph text](https://github.com/sahaj279/go_assignment/assets/88133213/4d5765e9-5605-44ac-ae5b-ff8975a55842)
+
 ### Requirements
 - An in memory collection 1 to store data from mysql
 - A channel to store items from collection1 and pass it to other thread
