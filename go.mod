@@ -4,7 +4,6 @@ go 1.21.5
 
 require (
 	github.com/go-ozzo/ozzo-validation v3.6.0+incompatible
-	github.com/golang/mock v1.6.0
 	github.com/ilyakaznacheev/cleanenv v1.5.0
 	github.com/pkg/errors v0.9.1
 	gorm.io/driver/mysql v1.5.2

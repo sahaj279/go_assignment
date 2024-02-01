@@ -1,4 +1,4 @@
-package service
+package repo
 
 import (
 	"fmt"
@@ -6,14 +6,10 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/sahaj279/go_assignment/config"
+	"github.com/sahaj279/go_assignment/service/item"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
-
-//go:generate mockgen -source=db.go -destination=db_mock.go -package=service
-type DB interface {
-	GetItems() (items []Item, err error)
-}
 
 type Repository struct {
 	db *gorm.DB
@@ -50,7 +46,7 @@ func NewRepo(db *gorm.DB) *Repository {
 	return &Repository{db: db}
 }
 
-func (r Repository) GetItems() (items *[]Item, err error) {
+func (r Repository) GetItems() (items *[]item.Item, err error) {
 	if err := r.db.Find(&items).Error; err != nil {
 		err = errors.Wrap(err, "fetching items from database failed")
 		return nil, err
