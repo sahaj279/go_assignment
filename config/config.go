@@ -20,6 +20,9 @@ type AppConfig struct {
 		DisableTLS            bool          `yaml:"disableTLS"`
 		Debug                 bool          `yaml:"debug"`
 	} `yaml:"database"`
+	Consumer struct {
+		Count int `yaml:"count"`
+	} `yaml:"consumer"`
 }
 
 // LoadAppConfig builds config for database and returns a DbConfig struct.

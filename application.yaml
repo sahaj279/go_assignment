@@ -9,3 +9,5 @@ database:
   maxConnectionIdletime: 50s
   disableTLS: true
   debug: true
+consumer:
+  count: 6

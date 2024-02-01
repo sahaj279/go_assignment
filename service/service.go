@@ -1,7 +1,9 @@
 package service
 
 import (
+	"fmt"
 	"sync"
+	"time"
 
 	"github.com/pkg/errors"
 	"github.com/sahaj279/go_assignment/config"
@@ -25,21 +27,26 @@ func Init() error {
 	defer closeDB()
 
 	repo := repo.NewRepo(db)
-
+	consumerCount := config.Consumer.Count
 	itemChan := make(chan item.Item)
 	errChan := make(chan error)
+	startTime := time.Now()
 	wg := sync.WaitGroup{}
 
-	wg.Add(2)
+	wg.Add(1)
 	go producer.FetchItem(itemChan, &wg, repo, errChan)
 
-	go consumer.GetInvoice(itemChan, &wg)
+	// firing multiple consumer for a consumer intensive process to reduce time
+	for i := 0; i < consumerCount; i++ {
+		wg.Add(1)
+		go consumer.GetInvoice(itemChan, &wg)
+	}
 
 	for err := range errChan {
 		return errors.Wrap(err, "fetchItem")
 	}
-
 	wg.Wait()
+	fmt.Println(time.Since(startTime))
 
 	return nil
 }
