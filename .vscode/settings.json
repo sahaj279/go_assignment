@@ -1,0 +1,31 @@
+{
+    "go.testTimeout": "1000s",
+    "go.docsTool": "gogetdoc",
+    "go.useLanguageServer": true,
+    "go.lintOnSave": "package",
+    "[go]": {
+        "editor.snippetSuggestions": "none",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": "explicit"
+        }
+    },
+    "gopls": {
+        "formatting.gofumpt": true,
+        "build.buildFlags": []
+    },
+    "go.testFlags": [
+        "-v",
+        "-tags=wireinject",
+        "-count=1"
+    ],
+    "go.coverOnSave": true,
+    "go.coverageDecorator": {
+        "type": "gutter",
+        "coveredHighlightColor": "rgba(64,128,128,0.5)",
+        "uncoveredHighlightColor": "rgba(128,64,64,0.25)",
+        "coveredGutterStyle": "blockgreen",
+        "uncoveredGutterStyle": "blockred"
+    },
+    "go.coverOnSingleTest": false
+}
